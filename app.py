@@ -44,8 +44,9 @@ collection.create_index("id")
 
 # Request model for API input
 class SearchRequest(BaseModel):
+    identical: bool
     biometric_vector: List[float]
-
+    
 # Search endpoint
 @app.post("/search")
 async def search(request: SearchRequest):
@@ -59,22 +60,39 @@ async def search(request: SearchRequest):
 
         # Search FAISS for nearest neighbors
         # k = 5  # Number of results to return
-        k = 1
+        k = 5
         distances, indices = index.search(query_vector, k)
-
+        
+        user_data = []
+        
         # Debug: Print indices and distances
         print("Indices:", indices)
         print("Distances:", distances)
+        if request.identical:
+            # identical=true => To search exact record(Similarity 100%) on db, distance value must be zero
+            if distances[0][0] == 0:
+                user_id = int(ids[indices[0][0]])
+                user = collection.find_one({"id": user_id}, {"id": 1, "metadata": 1, "email": 1, "phone": 1})
+                if user:
+                    # if user found on db
+                    user_data.append(user)
+                    print("Identical User IDs:", user_id)  # Debug: Print user ID
+                else:
+                    # if user not found on db
+                     user_data.append({"id": None, "metadata": None, "email": None, "phone": None})
+            else:
+                # if distance value is not zero
+                 user_data.append({"id": None, "metadata": None, "email": None, "phone": None})
+        else:
+            # identical=false => To search other 5 similar record on db, k=5 limit record
+            user_ids = [int(ids[idx]) for idx in indices[0]]
+            print("User IDs:", user_ids)  # Debug: Print user IDs
 
-        # Retrieve metadata from MongoDB in a single query
-        user_ids = [int(ids[idx]) for idx in indices[0]]
-        print("User IDs:", user_ids)  # Debug: Print user IDs
+            if not user_ids:
+                return {"results": []}  # Return empty results if no user IDs are found
 
-        if not user_ids:
-            return {"results": []}  # Return empty results if no user IDs are found
-
-        user_data = list(collection.find({"id": {"$in": user_ids}}, {"id": 1, "metadata": 1, "email": 1, "phone": 1}))
-        print("User Data:", user_data)  # Debug: Print user data
+            user_data = list(collection.find({"id": {"$in": user_ids}}, {"id": 1, "metadata": 1, "email": 1, "phone": 1}))
+            print("Similar User IDs", user_ids)  # Debug: Print user data
 
         # Map results to their IDs
         results = []
