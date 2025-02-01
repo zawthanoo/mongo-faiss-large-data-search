@@ -1,0 +1,7 @@
+/biosearch
+/__pycache__
+*.npy
+*.bin
+last_indexed_timestamp.txt
+/.vscode
+
