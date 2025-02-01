@@ -20,12 +20,23 @@ pip install fastapi uvicorn pymongo faiss-cpu
 python init.data.py
 ```
 
-### Example Search API
+### Search exact record(eg; "identical": true)
 ```
 curl -X POST http://localhost:5000/search \
 -H "Content-Type: application/json" \
--d '{"biometric_vector": [0.1, 0.2, 0.3, 0.4, 0.5]}'
+-d '{"identical": true, "biometric_vector": [0.1, 0.2, 0.3, 0.4, 0.5]}'
 ```
+### Search Similarity record(eg; "identical": false)
+
+update k value to limit the size of record.
+
+```
+curl -X POST http://localhost:5000/search \
+-H "Content-Type: application/json" \
+-d '{"identical": false, "biometric_vector": [0.1, 0.2, 0.3, 0.4, 0.5]}'
+```
+
+
 
 ### Reload Index after new record is inserted on mongodb
 ```
