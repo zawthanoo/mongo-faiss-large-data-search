@@ -16,8 +16,8 @@ collection = db["biometric_data_2"]
 # producer = KafkaProducer(bootstrap_servers='localhost:9092', value_serializer=lambda v: json.dumps(v, default=str).encode('utf-8'))
 
 # Generate dummy biometric data
-def generate_dummy_biometric_data(num_samples=10, vector_dim=128):
-    lastId = 3001
+def generate_dummy_biometric_data(num_samples=3000000, vector_dim=128):
+    lastId = 1
     for i in range(num_samples):
         # Simulate a biometric vector
         biometric_vector = np.random.rand(vector_dim).tolist()
